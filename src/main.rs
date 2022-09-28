@@ -216,6 +216,7 @@ fn main() {
     drawables.push(Box::new(Line::new(30.0, 20.3, 40.0, 500.0)));
     drawables.push(Box::new(Line::new(30.0, 20.3, 500.0, 70.0)));
     drawables.push(Box::new(Line::new(30.0, 500.3, 600.0, 10.0)));
+    drawables.push(Box::new(Line::new(30.0, 500.3, 600.0, 500.3)));
     match init_result {
         Ok(mut context) => draw(&mut context, &drawables),
         Err(err) => println!("Error occurred during context init: {}", err),
