@@ -1,16 +1,11 @@
 extern crate sdl2;
 
-use sdl2::Sdl;
-use sdl2::render::WindowCanvas;
 use sdl2::EventPump;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
 use sdl2::video::{WindowSurfaceRef, Window};
 
 use sdl2_sys::SDL_PixelFormat;
-use sdl2_sys::SDL_PixelFormatEnum;
-use sdl2_sys::SDL_Palette;
 use sdl2_sys::SDL_Surface;
 
 struct Context {
@@ -126,19 +121,60 @@ impl Draw for Line {
         let delta_y = self.last.y - self.first.y;
         let delta_x = self.last.x - self.first.x;
         let first_x = self.first.x as u32;
+        let first_y = self.first.y as u32;
         let last_x = self.last.x as u32;
+        let last_y = self.last.y as u32;
+        let slope = delta_y / delta_x;
         let mut x = first_x;
-        let mut y = self.first.y as u32;
-        let mut denominator = 2.0 * delta_y - delta_x;
-        for _ in first_x..last_x {
-            canvas.put_pixel(x, y, &PixelColor::red());
-            if denominator >= 0.0 {
+        let mut y = first_y;
+        if slope > 1.0 {
+            let mut denominator = 2.0 * delta_y - delta_x;
+            for _ in 0..(last_y - first_y) {
+                canvas.put_pixel(x, y, &PixelColor::red());
+                if denominator >= 0.0 {
+                    denominator -= 2.0 * delta_x;
+                } else {
+                    x+= 1;
+                    denominator += 2.0 * delta_y - 2.0 * delta_x;
+                }
                 y += 1;
-                denominator += 2.0 * delta_y - 2.0 * delta_x;
-            } else {
-                denominator += 2.0 * delta_y;
             }
-            x += 1;
+        } else if slope > 0.0 {
+            let mut denominator = 2.0 * delta_y - delta_x;
+            for _ in 0..(last_x - first_x) {
+                canvas.put_pixel(x, y, &PixelColor::red());
+                if denominator >= 0.0 {
+                    y += 1;
+                    denominator += 2.0 * delta_y - 2.0 * delta_x;
+                } else {
+                    denominator += 2.0 * delta_y;
+                }
+                x += 1;
+            }
+        } else if slope < -1.0 {
+            let mut denominator = delta_y + 2.0 * delta_x;
+            for _ in 0..(first_y - last_y) {
+                canvas.put_pixel(x, y, &PixelColor::red());
+                if denominator >= 0.0 {
+                    x += 1;
+                    denominator += 2.0 * delta_y + 2.0 * delta_x;
+                } else {
+                    denominator += 2.0 * delta_x;
+                }
+                y -= 1;
+            }
+        } else {
+            let mut denominator = 2.0 * delta_y +  delta_x;
+            for _ in 0..(last_x - first_x) {
+                canvas.put_pixel(x, y, &PixelColor::red());
+                if denominator >= 0.0 {
+                    denominator += 2.0 * delta_y;
+                } else {
+                    y -= 1;
+                    denominator += 2.0 * delta_x;
+                }
+                x += 1;
+            }
         }
     }
 }
@@ -175,8 +211,11 @@ fn draw(context: &mut Context, drawables: &Vec<Box<dyn Draw>>) {
 fn main() {
     let init_result = create_context();
     let mut drawables: Vec<Box<dyn Draw>> = Vec::new();
-    drawables.push(Box::new(Point2d {x: 5.2, y: 7.8}));
-    drawables.push(Box::new(Line::new(30.0, 20.2, 400.3, 60.4)));
+    //drawables.push(Box::new(Point2d {x: 5.2, y: 7.8}));
+    drawables.push(Box::new(Line::new(30.0, 500.3, 40.0, 10.0)));
+    drawables.push(Box::new(Line::new(30.0, 20.3, 40.0, 500.0)));
+    drawables.push(Box::new(Line::new(30.0, 20.3, 500.0, 70.0)));
+    drawables.push(Box::new(Line::new(30.0, 500.3, 600.0, 10.0)));
     match init_result {
         Ok(mut context) => draw(&mut context, &drawables),
         Err(err) => println!("Error occurred during context init: {}", err),
