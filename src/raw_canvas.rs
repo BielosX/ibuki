@@ -1,5 +1,6 @@
 use sdl2::video::WindowSurfaceRef;
 use sdl2_sys::{SDL_PixelFormat, SDL_Surface};
+use crate::pixel_color::PixelColor;
 
 pub struct RawCanvas {
     width: u32,
@@ -9,23 +10,6 @@ pub struct RawCanvas {
     green_shift: u8,
     blue_shift: u8,
     alpha_shift: u8
-}
-
-pub struct PixelColor {
-    pub red: u8,
-    pub green: u8,
-    pub blue: u8,
-    pub alpha: u8
-}
-
-impl PixelColor {
-    pub fn red() -> PixelColor {
-        PixelColor { red: 255, green: 0, blue: 0, alpha: 0 }
-    }
-
-    pub fn black() -> PixelColor {
-        PixelColor { red: 0, green: 0, blue: 0, alpha: 0 }
-    }
 }
 
 impl RawCanvas {

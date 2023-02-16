@@ -3,22 +3,25 @@ mod raw_canvas;
 mod draw;
 mod point2d;
 mod line;
+mod pixel_color;
 
 extern crate sdl2;
 
 use sdl2::EventPump;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::libc::name_t;
 use sdl2::video::{WindowSurfaceRef, Window};
 
-use sdl2_sys::SDL_PixelFormat;
+use sdl2_sys::{SDL_PixelFormat, wchar_t};
 use sdl2_sys::SDL_Surface;
 
 use raw_canvas::RawCanvas;
-use raw_canvas::PixelColor;
 use line::Line;
 use point2d::Point2d;
 use crate::draw::Draw;
+use crate::pixel_color::PixelColor;
+use crate::polygon::Polygon;
 
 struct Context {
     window: Window,
@@ -58,12 +61,17 @@ fn main() {
     let init_result = create_context();
     let mut drawables: Vec<Box<dyn Draw>> = Vec::new();
     //drawables.push(Box::new(Point2d {x: 5.2, y: 7.8}));
+    /*
     drawables.push(Box::new(Line::new(30.0, 500.3, 40.0, 10.0)));
     drawables.push(Box::new(Line::new(30.0, 20.3, 40.0, 500.0)));
     drawables.push(Box::new(Line::new(30.0, 20.3, 500.0, 70.0)));
     drawables.push(Box::new(Line::new(30.0, 500.3, 600.0, 10.0)));
     drawables.push(Box::new(Line::new(30.0, 500.3, 600.0, 500.3)));
     drawables.push(Box::new(Line::new(700.0, 500.3, 700.0, 20.3)));
+     */
+    let points = vec![Point2d::new(20.0, 20.0), Point2d::new(40.0, 200.0),
+        Point2d::new(100.0, 130.0), Point2d::new(200.0, 250.0), Point2d::new(210.0, 30.0)];
+    drawables.push(Box::new(Polygon::new(PixelColor::red(), points)));
     match init_result {
         Ok(mut context) => draw(&mut context, &drawables),
         Err(err) => println!("Error occurred during context init: {}", err),

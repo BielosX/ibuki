@@ -1,6 +1,7 @@
 use crate::draw::Draw;
+use crate::pixel_color::PixelColor;
 use crate::point2d::Point2d;
-use crate::raw_canvas::{PixelColor, RawCanvas};
+use crate::raw_canvas::RawCanvas;
 
 pub struct Line {
     first: Point2d,
