@@ -3,9 +3,10 @@ use crate::pixel_color::PixelColor;
 use crate::point2d::Point2d;
 use crate::raw_canvas::RawCanvas;
 
+#[derive(Copy, Clone)]
 pub struct Line {
-    first: Point2d,
-    last: Point2d
+    pub first: Point2d,
+    pub last: Point2d
 }
 
 impl Line {

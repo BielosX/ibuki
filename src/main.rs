@@ -4,6 +4,7 @@ mod draw;
 mod point2d;
 mod line;
 mod pixel_color;
+mod clipping;
 
 extern crate sdl2;
 
@@ -19,6 +20,7 @@ use sdl2_sys::SDL_Surface;
 use raw_canvas::RawCanvas;
 use line::Line;
 use point2d::Point2d;
+use crate::clipping::{ClippingRectangle, cohen_sutherland_line_clip};
 use crate::draw::Draw;
 use crate::pixel_color::PixelColor;
 use crate::polygon::Polygon;
@@ -69,9 +71,14 @@ fn main() {
     drawables.push(Box::new(Line::new(30.0, 500.3, 600.0, 500.3)));
     drawables.push(Box::new(Line::new(700.0, 500.3, 700.0, 20.3)));
      */
+    /*
     let points = vec![Point2d::new(20.0, 20.0), Point2d::new(40.0, 200.0),
         Point2d::new(100.0, 130.0), Point2d::new(200.0, 250.0), Point2d::new(210.0, 30.0)];
     drawables.push(Box::new(Polygon::new(PixelColor::red(), points)));
+    */
+    let line = Line::new(10.0, 10.0, 500.0, 500.0);
+    let clipped = cohen_sutherland_line_clip(&line, &ClippingRectangle::new(30.0, 30.0, 200.0, 200.0)).unwrap();
+    drawables.push(Box::new(clipped));
     match init_result {
         Ok(mut context) => draw(&mut context, &drawables),
         Err(err) => println!("Error occurred during context init: {}", err),

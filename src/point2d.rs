@@ -2,6 +2,7 @@ use crate::draw::Draw;
 use crate::pixel_color::PixelColor;
 use crate::raw_canvas::RawCanvas;
 
+#[derive(Copy, Clone)]
 pub struct Point2d {
     pub x: f32,
     pub y: f32
