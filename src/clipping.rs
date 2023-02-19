@@ -34,6 +34,14 @@ fn compute_out_code(point: &Point2d, clipping_rectangle: &ClippingRectangle) -> 
     result
 }
 
+fn line_passing_two_points_x(first: &Point2d, second: &Point2d, y: f32) -> f32 {
+    first.x + (second.x - first.x) * (y - first.y) / (second.y - first.y)
+}
+
+fn line_passing_two_points_y(first: &Point2d, second: &Point2d, x: f32) -> f32 {
+    first.y + (second.y - first.y) * (x - first.x) / (second.x - first.x)
+}
+
 pub fn cohen_sutherland_line_clip(line: &Line, rectangle: &ClippingRectangle) -> Option<Line> {
     let mut first_out_code = compute_out_code(&line.first, rectangle);
     let mut last_out_code = compute_out_code(&line.last, rectangle);
@@ -51,16 +59,16 @@ pub fn cohen_sutherland_line_clip(line: &Line, rectangle: &ClippingRectangle) ->
             let mut x: f32 = 0.0;
             let mut y: f32 = 0.0;
             if out_code & TOP != 0 {
-                x = line.first.x + (line.last.x - line.first.x) * (rectangle.y_max - line.first.y) / (line.last.y - line.first.y);
+                x = line_passing_two_points_x(&line.first, &line.last, rectangle.y_max);
                 y = rectangle.y_max;
             } else if out_code & BOTTOM != 0 {
-                x = line.first.x + (line.last.x - line.first.x) * (rectangle.y_min - line.first.y) / (line.last.y - line.first.y);
+                x = line_passing_two_points_x(&line.first, &line.last, rectangle.y_min);
                 y = rectangle.y_min;
             } else if out_code & RIGHT != 0 {
-                y = line.first.y + (line.last.y - line.first.y) * (rectangle.x_max - line.first.x) / (line.last.x - line.first.x);
+                y = line_passing_two_points_y(&line.first, &line.last, rectangle.x_max);
                 x = rectangle.x_max;
             } else {
-                y = line.first.y + (line.last.y - line.first.y) * (rectangle.x_min - line.first.x) / (line.last.x - line.first.x);
+                y = line_passing_two_points_y(&line.first, &line.last, rectangle.x_min);
                 x = rectangle.x_min;
             }
 
