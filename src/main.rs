@@ -5,6 +5,7 @@ mod point2d;
 mod line;
 mod pixel_color;
 mod clipping;
+mod vector2d;
 
 extern crate sdl2;
 
@@ -20,7 +21,7 @@ use sdl2_sys::SDL_Surface;
 use raw_canvas::RawCanvas;
 use line::Line;
 use point2d::Point2d;
-use crate::clipping::{ClippingRectangle, cohen_sutherland_line_clip};
+use crate::clipping::{ClippingRectangle, cohen_sutherland_line_clip, cyrus_beck_line_clip};
 use crate::draw::Draw;
 use crate::pixel_color::PixelColor;
 use crate::polygon::Polygon;
@@ -77,7 +78,13 @@ fn main() {
     drawables.push(Box::new(Polygon::new(PixelColor::red(), points)));
     */
     let line = Line::new(10.0, 10.0, 500.0, 500.0);
+    /*
     let clipped = cohen_sutherland_line_clip(&line, &ClippingRectangle::new(30.0, 30.0, 200.0, 200.0)).unwrap();
+     */
+    let clipped = cyrus_beck_line_clip(&line, &vec![Point2d::new(30.0, 30.0),
+                                                    Point2d::new(30.0, 200.0),
+                                                    Point2d::new(200.0, 200.0),
+                                                    Point2d::new(200.0, 30.0)]).unwrap();
     drawables.push(Box::new(clipped));
     match init_result {
         Ok(mut context) => draw(&mut context, &drawables),

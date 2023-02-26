@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 sdl2 = "0.35.2"
 sdl2-sys = "0.35.2"
+float-cmp = "0.9.0"

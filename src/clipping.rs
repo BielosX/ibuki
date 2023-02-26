@@ -1,5 +1,8 @@
+use float_cmp::approx_eq;
+use sdl2::libc::clone;
 use crate::line::Line;
 use crate::point2d::Point2d;
+use crate::vector2d::Vector2d;
 
 pub struct ClippingRectangle {
     y_min: f32,
@@ -78,6 +81,53 @@ pub fn cohen_sutherland_line_clip(line: &Line, rectangle: &ClippingRectangle) ->
             } else {
                 result = result.map(|l| Line::new(l.first.x, l.first.y, x, y));
                 last_out_code = compute_out_code(&Point2d::new(x, y), rectangle);
+            }
+        }
+    }
+    result
+}
+
+// Counter clockwise clipping_polygon edges
+pub fn cyrus_beck_line_clip(line: &Line, clipping_polygon: &Vec<Point2d>) -> Option<Line> {
+    let mut result = None;
+    if line.first.x == line.last.x && line.first.y == line.last.y {
+        result = Some(line.clone());
+    } else {
+        if clipping_polygon.len() >= 3 {
+            let mut edges: Vec<Vector2d> = Vec::new();
+            let length = clipping_polygon.len();
+            for x in 0..length {
+                let mut next_idx = if x == (length - 1) { 0 } else { x + 1 };
+                let first = clipping_polygon.get(x).unwrap();
+                let second = clipping_polygon.get(next_idx).unwrap();
+                let edge = Vector2d::new(first.x, first.y, second.x, second.y);
+                edges.push(edge);
+            }
+            let mut t_entering: f32 = 0.0;
+            let mut t_leaving: f32 = 1.0;
+            let segment_vector = Vector2d::from_2d_points(&line.first, &line.last);
+            for edge in edges.iter() {
+                let normal_left = edge.normal_left();
+                let normal_dot_segment = normal_left.dot(&segment_vector);
+                if !approx_eq!(f32, normal_dot_segment, 0.0) {
+                    let p0_to_pei = Vector2d::from_2d_points(&edge.get_to(), &line.first);
+                    let t = (normal_left.dot(&p0_to_pei)) / (- normal_dot_segment);
+                    if normal_dot_segment < 0.0 { // Possibly Entering
+                        t_entering = t_entering.max(t);
+                    } else { // Possibly Leaving
+                        t_leaving = t_leaving.min(t);
+                    }
+                }
+            }
+            if t_entering > t_leaving {
+                result = None;
+            } else {
+                let p0 = Vector2d::new(0.0, 0.0, line.first.x, line.first.y);
+                let t_entering_scaled = &segment_vector * t_entering;
+                let t_leaving_scaled = &segment_vector * t_leaving;
+                let result_from = (&p0 + &t_entering_scaled).get_to();
+                let result_to = (&p0 + &t_leaving_scaled).get_to();
+                result = Some(Line::new(result_from.x, result_from.y, result_to.x, result_to.y));
             }
         }
     }
