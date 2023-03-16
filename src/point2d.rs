@@ -12,6 +12,10 @@ impl Point2d {
     pub fn new(x: f32, y: f32) -> Point2d {
         Point2d { x, y }
     }
+
+    pub fn zero() -> Point2d {
+        Point2d::new(0.0, 0.0)
+    }
 }
 
 impl Draw for Point2d {

@@ -1,5 +1,5 @@
 use std::ops;
-use std::ops::{Add, Div, Mul};
+use std::ops::{Add, Div, Mul, Sub};
 use crate::point2d::Point2d;
 
 pub struct Vector2d {
@@ -43,6 +43,10 @@ impl Vector2d {
     pub fn get_to(&self) -> Point2d {
         Point2d::new(self.x1, self.y1)
     }
+
+    pub fn to_starting_zero(&self) -> Vector2d {
+        Vector2d::new(0.0, 0.0, self.x1 - self.x0, self.y1 - self.y0)
+    }
 }
 
 impl Div<f32> for Vector2d {
@@ -82,5 +86,21 @@ impl<'a, 'b> Add<&'a Vector2d> for &'b Vector2d {
 
     fn add(self, rhs: &'a Vector2d) -> Self::Output {
         Vector2d::new(self.x0 + rhs.x0, self.y0 + rhs.y0, self.x1 + rhs.x1, self.y1 + rhs.y1)
+    }
+}
+
+impl Sub<Vector2d> for Vector2d {
+    type Output = Vector2d;
+
+    fn sub(self, rhs: Vector2d) -> Self::Output {
+        Vector2d::new(self.x0 - rhs.x0, self.y0 - rhs.y0, self.x1 - rhs.x1, self.y1 - rhs.y1)
+    }
+}
+
+impl<'a, 'b> Sub<&'a Vector2d> for &'b Vector2d {
+    type Output = Vector2d;
+
+    fn sub(self, rhs: &'a Vector2d) -> Self::Output {
+        Vector2d::new(self.x0 - rhs.x0, self.y0 - rhs.y0, self.x1 - rhs.x1, self.y1 - rhs.y1)
     }
 }

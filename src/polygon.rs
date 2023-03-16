@@ -5,9 +5,10 @@ use crate::pixel_color::PixelColor;
 use crate::point2d::Point2d;
 use crate::raw_canvas::RawCanvas;
 
+#[derive(Clone)]
 pub struct Polygon {
-    points: Vec<Point2d>,
-    color: PixelColor
+    pub points: Vec<Point2d>,
+    pub color: PixelColor
 }
 
 impl Polygon {

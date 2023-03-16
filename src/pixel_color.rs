@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 pub struct PixelColor {
     pub red: u8,
     pub green: u8,

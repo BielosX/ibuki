@@ -2,6 +2,7 @@ use float_cmp::approx_eq;
 use sdl2::libc::clone;
 use crate::line::Line;
 use crate::point2d::Point2d;
+use crate::polygon::Polygon;
 use crate::vector2d::Vector2d;
 
 pub struct ClippingRectangle {
@@ -128,6 +129,85 @@ pub fn cyrus_beck_line_clip(line: &Line, clipping_polygon: &Vec<Point2d>) -> Opt
                 let result_from = (&p0 + &t_entering_scaled).get_to();
                 let result_to = (&p0 + &t_leaving_scaled).get_to();
                 result = Some(Line::new(result_from.x, result_from.y, result_to.x, result_to.y));
+            }
+        }
+    }
+    result
+}
+
+fn inside(vertex: &Point2d, clipping_edge: &Vector2d) -> bool {
+    let edge_to_vertex = Vector2d::from_2d_points(&clipping_edge.get_from(), vertex).to_starting_zero();
+    clipping_edge.normal_left().dot(&edge_to_vertex) < 0.0
+}
+
+fn intersect(polygon_edge: &Vector2d, clipping_edge: &Vector2d) -> Option<Point2d> {
+    let normal_left = clipping_edge.normal_left();
+    let denominator = -normal_left.dot(polygon_edge);
+    if !approx_eq!(f32, denominator, 0.0) {
+        let clipping_edge_point_to_polygon_edge_vertex = Vector2d::from_2d_points(&clipping_edge.get_to(), &polygon_edge.get_from());
+        let nominator = normal_left.dot(&clipping_edge_point_to_polygon_edge_vertex);
+        let t = nominator / denominator;
+        let scaled_edge = polygon_edge.to_starting_zero() * t;
+        let result = scaled_edge + Vector2d::from_2d_points(&Point2d::zero(), &polygon_edge.get_from());
+        Some(result.get_to())
+    } else {
+        None
+    }
+}
+
+fn sutherland_hodgman_polygon_edge_clip(polygon: &Polygon, clipping_edge: (&Point2d, &Point2d)) -> Option<Polygon> {
+    let edge_vector = Vector2d::from_2d_points(clipping_edge.0, clipping_edge.1);
+    let length = polygon.points.len();
+    let mut result: Vec<Point2d> = Vec::new();
+    for i in 0..length {
+        let begin = polygon.points.get(i).unwrap();
+        let end_index = if i == (length-1) {0} else {i+1};
+        let end = polygon.points.get(end_index).unwrap();
+        let polygon_edge_vector = Vector2d::from_2d_points(begin, end);
+        if inside(end, &edge_vector) {
+            if inside(begin, &edge_vector) {
+                result.push(end.clone());
+            } else {
+                let intersection = intersect(&polygon_edge_vector, &edge_vector);
+                match intersection {
+                    None => {
+                        result.push(end.clone());
+                    }
+                    Some(p) => {
+                        result.push(p);
+                        result.push(end.clone());
+                    }
+                }
+            }
+        } else {
+            if inside(begin, &edge_vector) {
+                let intersection = intersect(&polygon_edge_vector, &edge_vector);
+                if let Some(p) = intersection {
+                    result.push(p);
+                }
+            }
+        }
+    }
+    if result.len() > 0 {
+        Some(Polygon::new(polygon.color.clone(), result))
+    } else {
+        None
+    }
+}
+
+pub fn sutherland_hodgman_polygon_clip(polygon: &Polygon, clipping_polygon: &Vec<Point2d>) -> Option<Polygon> {
+    let length = clipping_polygon.len();
+    let mut result: Option<Polygon> = Some(polygon.clone());
+    for i in 0..length {
+        let begin = clipping_polygon.get(i).unwrap();
+        let end_index = if i == (length-1) {0} else {i+1};
+        let end = clipping_polygon.get(end_index).unwrap();
+        match result {
+            None => {
+                break;
+            }
+            Some(p) => {
+                result = sutherland_hodgman_polygon_edge_clip(&p, (&begin, &end));
             }
         }
     }
